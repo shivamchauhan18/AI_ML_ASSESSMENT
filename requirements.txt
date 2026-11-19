@@ -1,0 +1,17 @@
+# Web interfaces
+streamlit
+fastapi
+uvicorn
+python-multipart
+python-dotenv
+pydantic
+
+# Document processing and retrieval
+docling
+faiss-cpu
+langchain
+langchain-community
+langchain-core
+langchain-ollama
+langchain-openai
+
