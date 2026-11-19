@@ -3,28 +3,21 @@ Upload a PDF and ask questions about its contents.
 
 ## Architecture
 
-The application uses retrieval-augmented generation (RAG). The Streamlit UI
-and FastAPI service are independent entry points that call the same backend
-modules; the Streamlit app does not call the API.
+The application uses retrieval-augmented generation (RAG) to answer questions
+about uploaded documents.
 
 ```mermaid
-flowchart LR
-    User --> UI[Streamlit UI<br/>app.py]
-    Client[API client] --> API[FastAPI<br/>api.py]
-    UI --> Ingest[Document ingestion]
-    API --> Ingest
+flowchart TD
+    PDF[PDF upload] --> Ingest[Document ingestion]
     Ingest --> Docling[Docling: PDF to Markdown]
     Docling --> Split[Split text into chunks]
     Split --> Embed[Ollama embeddings]
     Embed --> Index[(FAISS index)]
-    UI --> Retrieve[Question retrieval]
-    API --> Retrieve
-    Retrieve --> Embed
-    Retrieve --> Index
+    Question[User question] --> QueryEmbed[Ollama question embedding]
+    QueryEmbed --> Retrieve[Retrieve relevant chunks]
+    Index --> Retrieve
     Retrieve --> LLM[OpenAI language model]
     LLM --> Answer[Answer with numbered citations]
-    Answer --> UI
-    Answer --> API
 ```
 
 1. **Ingestion:** `backend/document_processing.py` converts PDFs to Markdown
@@ -36,10 +29,8 @@ flowchart LR
    question and numbered chunks to the OpenAI model, prompting it to answer
    from that context and cite its sources. The interface returns the answer
    and source filenames.
-3. **Storage:** Streamlit creates a temporary index for each uploaded PDF in
-   the user's session. The API uses the shared, persistent `faiss_index`
-   directory and appends uploads to it. Model settings are in
-   `backend/config.py`.
+3. **Storage:** Indexes may be temporary or stored persistently in the
+   `faiss_index` directory. Model settings are in `backend/config.py`.
 
 ## Setup
 
